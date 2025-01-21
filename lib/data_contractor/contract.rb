@@ -11,6 +11,7 @@ module DataContractor
     end
 
     # imports the file, accessing its path and contents
+    # NOTE: returns false if the contract can not be imported (e.g. invalid)
     def import(file)
       contents = DataContractor::Parser.new.read(file)
 
@@ -19,7 +20,7 @@ module DataContractor
 
       true
     rescue StandardError => e
-      @logger.error("[data_contract:] #{e}")
+      @logger.error("[data_contractor:] #{e}")
 
       false
     end
