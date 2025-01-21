@@ -1,0 +1,254 @@
+{
+  "dataContractSpecification": "0.9.3",
+  "id": "urn:datacontract:checkout:orders-latest",
+  "info": {
+    "title": "Orders Latest",
+    "version": "1.0.0",
+    "description": "Successful customer orders in the webshop. \nAll orders since 2020-01-01. \nOrders with their line items are in their current state (no history included).\n",
+    "owner": "Checkout Team",
+    "contact": {
+      "name": "John Doe (Data Product Owner)",
+      "url": "https://teams.microsoft.com/l/channel/example/checkout"
+    },
+    "slackChannel": "#checkout"
+  },
+  "servers": {
+    "production": {
+      "type": "s3",
+      "description": "One folder per model. One file per day.",
+      "environment": "prod",
+      "format": "json",
+      "delimiter": "new_line",
+      "location": "s3://datacontract-example-orders-latest/data/{model}/*.json"
+    }
+  },
+  "terms": {
+    "usage": "Data can be used for reports, analytics and machine learning use cases.\nOrder may be linked and joined by other tables\n",
+    "limitations": "Not suitable for real-time use cases.\nData may not be used to identify individual customers.\nMax data processing per day: 10 TiB\n",
+    "billing": "5000 USD per month",
+    "noticePeriod": "P3M"
+  },
+  "models": {
+    "orders": {
+      "description": "One record per order. Includes cancelled and deleted orders.",
+      "type": "table",
+      "fields": {
+        "order_id": {
+          "ref": "#/definitions/order_id",
+          "title": "Order ID",
+          "type": "text",
+          "format": "uuid",
+          "required": true,
+          "primary": true,
+          "unique": true,
+          "description": "An internal ID that identifies an order in the online shop.",
+          "pii": true,
+          "classification": "restricted",
+          "tags": [
+            "orders"
+          ],
+          "example": "243c25e5-a081-43a9-aeab-6d5d5b6cb5e2"
+        },
+        "order_timestamp": {
+          "type": "timestamp",
+          "required": true,
+          "primary": false,
+          "unique": false,
+          "description": "The business timestamp in UTC when the order was successfully registered in the source system and the payment was successful.",
+          "example": "2024-09-09T08:30:00Z"
+        },
+        "order_total": {
+          "type": "long",
+          "required": true,
+          "primary": false,
+          "unique": false,
+          "description": "Total amount the smallest monetary unit (e.g., cents).",
+          "example": "9999"
+        },
+        "customer_id": {
+          "type": "text",
+          "required": false,
+          "primary": false,
+          "unique": false,
+          "description": "Unique identifier for the customer.",
+          "minLength": 10,
+          "maxLength": 20
+        },
+        "customer_email_address": {
+          "type": "text",
+          "format": "email",
+          "required": true,
+          "primary": false,
+          "unique": false,
+          "description": "The email address, as entered by the customer. The email address was not verified.",
+          "pii": true,
+          "classification": "sensitive"
+        },
+        "processed_timestamp": {
+          "type": "timestamp",
+          "required": true,
+          "primary": false,
+          "unique": false,
+          "description": "The timestamp when the record was processed by the data platform.",
+          "config": {
+            "jsonType": "string",
+            "jsonFormat": "date-time"
+          }
+        }
+      }
+    },
+    "line_items": {
+      "description": "A single article that is part of an order.",
+      "type": "table",
+      "fields": {
+        "lines_item_id": {
+          "type": "text",
+          "required": true,
+          "primary": true,
+          "unique": true,
+          "description": "Primary key of the lines_item_id table"
+        },
+        "order_id": {
+          "ref": "#/definitions/order_id",
+          "title": "Order ID",
+          "type": "text",
+          "format": "uuid",
+          "required": false,
+          "primary": false,
+          "unique": false,
+          "references": "orders.order_id",
+          "description": "An internal ID that identifies an order in the online shop.",
+          "pii": true,
+          "classification": "restricted",
+          "tags": [
+            "orders"
+          ],
+          "example": "243c25e5-a081-43a9-aeab-6d5d5b6cb5e2"
+        },
+        "sku": {
+          "ref": "#/definitions/sku",
+          "title": "Stock Keeping Unit",
+          "type": "text",
+          "required": false,
+          "primary": false,
+          "unique": false,
+          "description": "The purchased article number",
+          "pattern": "^[A-Za-z0-9]{8,14}$",
+          "tags": [
+            "inventory"
+          ],
+          "links": {
+            "wikipedia": "https://en.wikipedia.org/wiki/Stock_keeping_unit"
+          },
+          "example": "96385074"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "order_id": {
+      "domain": "checkout",
+      "name": "order_id",
+      "title": "Order ID",
+      "description": "An internal ID that identifies an order in the online shop.",
+      "type": "text",
+      "format": "uuid",
+      "pii": true,
+      "classification": "restricted",
+      "tags": [
+        "orders"
+      ],
+      "example": "243c25e5-a081-43a9-aeab-6d5d5b6cb5e2"
+    },
+    "sku": {
+      "domain": "inventory",
+      "name": "sku",
+      "title": "Stock Keeping Unit",
+      "description": "A Stock Keeping Unit (SKU) is an internal unique identifier for an article. \nIt is typically associated with an article's barcode, such as the EAN/GTIN.\n",
+      "type": "text",
+      "pattern": "^[A-Za-z0-9]{8,14}$",
+      "tags": [
+        "inventory"
+      ],
+      "links": {
+        "wikipedia": "https://en.wikipedia.org/wiki/Stock_keeping_unit"
+      },
+      "example": "96385074"
+    }
+  },
+  "examples": [
+    {
+      "type": "csv",
+      "description": "An example list of order records.",
+      "model": "orders",
+      "data": "order_id,order_timestamp,order_total,customer_id,customer_email_address,processed_timestamp\n\"1001\",\"2030-09-09T08:30:00Z\",2500,\"1000000001\",\"mary.taylor82@example.com\",\"2030-09-09T08:31:00Z\"\n\"1002\",\"2030-09-08T15:45:00Z\",1800,\"1000000002\",\"michael.miller83@example.com\",\"2030-09-09T08:31:00Z\"\n\"1003\",\"2030-09-07T12:15:00Z\",3200,\"1000000003\",\"michael.smith5@example.com\",\"2030-09-09T08:31:00Z\"\n\"1004\",\"2030-09-06T19:20:00Z\",1500,\"1000000004\",\"elizabeth.moore80@example.com\",\"2030-09-09T08:31:00Z\"\n\"1005\",\"2030-09-05T10:10:00Z\",4200,\"1000000004\",\"elizabeth.moore80@example.com\",\"2030-09-09T08:31:00Z\"\n\"1006\",\"2030-09-04T14:55:00Z\",2800,\"1000000005\",\"john.davis28@example.com\",\"2030-09-09T08:31:00Z\"\n\"1007\",\"2030-09-03T21:05:00Z\",1900,\"1000000006\",\"linda.brown67@example.com\",\"2030-09-09T08:31:00Z\"\n\"1008\",\"2030-09-02T17:40:00Z\",3600,\"1000000007\",\"patricia.smith40@example.com\",\"2030-09-09T08:31:00Z\"\n\"1009\",\"2030-09-01T09:25:00Z\",3100,\"1000000008\",\"linda.wilson43@example.com\",\"2030-09-09T08:31:00Z\"\n\"1010\",\"2030-08-31T22:50:00Z\",2700,\"1000000009\",\"mary.smith98@example.com\",\"2030-09-09T08:31:00Z\"\n"
+    },
+    {
+      "type": "csv",
+      "description": "An example list of line items.",
+      "model": "line_items",
+      "data": "lines_item_id,order_id,sku\n\"LI-1\",\"1001\",\"5901234123457\"\n\"LI-2\",\"1001\",\"4001234567890\"\n\"LI-3\",\"1002\",\"5901234123457\"\n\"LI-4\",\"1002\",\"2001234567893\"\n\"LI-5\",\"1003\",\"4001234567890\"\n\"LI-6\",\"1003\",\"5001234567892\"\n\"LI-7\",\"1004\",\"5901234123457\"\n\"LI-8\",\"1005\",\"2001234567893\"\n\"LI-9\",\"1005\",\"5001234567892\"\n\"LI-10\",\"1005\",\"6001234567891\"\n"
+    }
+  ],
+  "quality": {
+    "type": "SodaCL",
+    "specification": {
+      "checks for orders": [
+        "row_count >= 5",
+        "duplicate_count(order_id) = 0"
+      ],
+      "checks for line_items": [
+        "values in (order_id) must exist in orders (order_id)",
+        "row_count >= 5"
+      ]
+    }
+  },
+  "servicelevels": {
+    "availability": {
+      "description": "The server is available during support hours",
+      "percentage": "99.9%"
+    },
+    "retention": {
+      "description": "Data is retained for one year",
+      "period": "P1Y",
+      "unlimited": false
+    },
+    "latency": {
+      "description": "Data is available within 25 hours after the order was placed",
+      "threshold": "25h",
+      "sourceTimestampField": "orders.order_timestamp",
+      "processedTimestampField": "orders.processed_timestamp"
+    },
+    "freshness": {
+      "description": "The age of the youngest row in a table.",
+      "threshold": "25h",
+      "timestampField": "orders.order_timestamp"
+    },
+    "frequency": {
+      "description": "Data is delivered once a day",
+      "type": "batch",
+      "interval": "daily",
+      "cron": "0 0 * * *"
+    },
+    "support": {
+      "description": "The data is available during typical business hours at headquarters",
+      "time": "9am to 5pm in EST on business days",
+      "responseTime": "1h"
+    },
+    "backup": {
+      "description": "Data is backed up once a week, every Sunday at 0:00 UTC.",
+      "interval": "weekly",
+      "cron": "0 0 * * 0",
+      "recoveryTime": "24 hours",
+      "recoveryPoint": "1 week"
+    }
+  },
+  "links": {
+    "datacontractCli": "https://cli.datacontract.com"
+  },
+  "tags": [
+    "checkout",
+    "orders",
+    "s3"
+  ]
+}
