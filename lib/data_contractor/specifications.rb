@@ -1,5 +1,5 @@
-require 'logger'
-require 'pry'
+require "logger"
+require "pry"
 
 module DataContractor
   class Standard
@@ -15,14 +15,27 @@ module DataContractor
   end
 
   class Dcs < Standard
+    PRIMARY_KEY = "dataContractSpecification"
+
     def initialize
-      super('dataContractSpecification')
+      super(PRIMARY_KEY)
+    end
+
+    # TODO: abstract to the Standard class and add test coverage
+    def version(contract)
+      contract.data[PRIMARY_KEY]
     end
   end
 
   class Odcs < Standard
+    PRIMARY_KEY = "apiVersion"
+
     def initialize
-      super('apiVersion')
+      super(PRIMARY_KEY)
+    end
+
+    def version(contract)
+      contract.data[PRIMARY_KEY]
     end
   end
 
