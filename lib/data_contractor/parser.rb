@@ -14,7 +14,7 @@ module DataContractor
     end
 
     # returns contents of file as a hash if imported successfully
-    def import(file)
+    def read(file)
       @result = Psych.safe_load(file.read)
       return '' if @result.nil?
 
@@ -24,13 +24,18 @@ module DataContractor
 
       ''
     end
-    alias read import # TODO: rename method and remove
 
-    # TODO: determine the type of spec
+    # returns an instance of the parser class for the spec
     def specification
-      # use the contents of the parsed file and determine if this is a Data Contract Specification or ODCS (Open Data Contract Standard)
-      # NOTE: ODCS has a apiVersion key
-      # NOTE: DCS has a dataContractSpecification key
+      return nil if @result.nil?
+
+      match = nil
+
+      DataContractor::Specifications::STANDARDS.each do |_k, v|
+        match = v if @result.keys.include?(v.to_s)
+      end
+
+      match
     end
   end
 end
