@@ -17,7 +17,7 @@ module DataContractor
       @file = file
       @parser = DataContractor::Parser.new
       @data = @parser.read(file)
-      @specification = parser.specification
+      @specification = @parser.specification
 
       true
     rescue => e

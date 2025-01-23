@@ -1,6 +1,6 @@
-require 'psych'
-require 'logger'
-require 'pry'
+require "psych"
+require "logger"
+require "pry"
 
 module DataContractor
   class Error < StandardError; end
@@ -16,13 +16,13 @@ module DataContractor
     # returns contents of file as a hash if imported successfully
     def read(file)
       @result = Psych.safe_load(file.read)
-      return '' if @result.nil?
+      return "" if @result.nil?
 
       @result
-    rescue StandardError => e
+    rescue => e
       @logger.error("[data_contract:] #{e}")
 
-      ''
+      ""
     end
 
     # returns an instance of the parser class for the spec
@@ -31,7 +31,7 @@ module DataContractor
 
       match = nil
 
-      DataContractor::Specifications::STANDARDS.each do |_k, v|
+      DataContractor::Specifications::STANDARDS.each_value do |v|
         match = v if @result.keys.include?(v.to_s)
       end
 
