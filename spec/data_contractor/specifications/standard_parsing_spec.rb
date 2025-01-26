@@ -22,7 +22,7 @@ RSpec.describe Example do
     end
   end
 
-  describe "#vesrion" do
+  describe "#version" do
     it "returns the specification version of the contract" do
       file = File.open("spec/files/orders_latest.yaml")
 
